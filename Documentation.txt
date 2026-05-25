@@ -1,0 +1,161 @@
+TECHNICAL DOCUMENTATION
+MiniDB – In-Memory Data Management System
+
+1. Introduction
+MiniDB is a lightweight in-memory data management system designed to work with large datasets.
+The system supports storing data, searching, inserting, deleting, modifying records, performing range queries, running graph-based operations,
+and basic analytical computations.
+
+The main goal of MiniDB is to demonstrate how classic data structures (AVL trees, and graphs) can be combined to form a
+functional and scalable data management tool.
+
+2. Dataset Description
+The dataset used in the project contains over one million artificially generated records. Python libraries such as faker, random
+were used to create realistic values.
+
+Each record contains 5–8 attributes, including:
+- a unique ID (UUID)
+- textual attributes
+- numerical attributes
+- categorical values
+- relational fields storing lists of related record IDs
+
+The relational field enables graph construction.
+
+3. System Architecture
+
+3.1 Storage Layer
+The raw dataset is stored in a Python dictionary:
+{ record_id : record_dictionary }
+This provides constant-time access for reading and updating records.
+
+3.2 Indexing Layer (AVL Trees)
+Certain attributes are indexed using AVL trees.
+Each AVL tree maps:
+attribute_value → list of record_ids
+AVL trees guarantee logarithmic time for insert, search, delete, and range queries. Duplicate values are supported by storing multiple IDs in the node's
+list. Index updates occur automatically on insert, update, and delete operations.
+
+3.3 Query Engine
+The Query Engine handles:
+- exact search
+- range search
+- insertion
+- deletion
+- update
+- compound boolean search
+It communicates with both the storage layer and indexing layer to maintain consistency.
+
+3.4 Graph Module
+The dataset contains relational fields that form graph connections. The module supports:
+- BFS traversal
+- shortest unweighted path
+- connectivity checks
+- simple clustering
+
+3.5 Analytics Module
+Basic analytics include:
+- minimum
+- maximum
+- average
+- median
+- top-K queries
+
+3.6 User Interface
+A minimal Streamlit interface allows users to run searches, execute range queries, and use analytics and graph operators.
+
+4. Explanation of Core Operations
+
+4.1 Search
+Uses AVL-tree index when available and returns all records matching the key.
+
+4.2 Range Query
+Traverses the AVL tree to collect nodes with values in a given range.
+
+4.3 Insertion
+Adds a new record to the dictionary and updates all indexing structures.
+
+4.4 Deletion
+Removes the record and cleans index references.
+
+4.5 Update
+Updates only specified fields. If an indexed attribute changes, index entries are updated.
+
+4.6 Compound Search
+Allows AND/OR search conditions on indexed fields using set operations.
+
+5. Time and Space Complexity
+
+Storage:
+load_data: Time: O(N)
+           Space: O(N)
+build_index: Time: O(NlogN)
+             Space: O(N+K), where K is the number of distinct keys
+get_record_by_id: Time: O(1)
+                  Space: O(1)
+
+AVL Index:
+Insert: O(log N)
+Search: O(log N)
+Delete: O(log N)
+Range: O(log N + K)
+
+Query Engine:
+search: Time: O(logK +k), where K is the number of unique keys, k is the number of matched records
+        Space: O(k)
+range_search: Time: O(logK + R + k_total), where K is the number of unique keys, R is the number of keys visited
+              Space: O(k_total)
+insert: Time: O(I logK), where I is the number of indexed attributes, K is the number of unique keys
+        Space: O(1)
+delete: Time: O(I logK), where I is the number of indexed attributes, K is the number of unique keys
+        Space: O(1)
+update: Time: O(I logK), where I is the number of indexed attributes, K is the number of unique keys
+        Space: O(1)
+compound_search: Time: O( M·log K + Σ k_i + cost(set operations) + F ), where k_i is the number of results for criterion i, F is the final number of
+                       matching records, M is the number of criteria
+                 Space: O(T + F), where T is the total matching IDs, F is the final number of matching records
+
+Graph:
+build_graph: Time: O(N)
+             Space: O(A + E), where A is the number of unique artists, E is the number of edges
+neighbors: Time: O(d log d)
+           Space: O(d)
+degree: Time: O(1)
+        Space: O(1)
+BFS: Time: O(A + E), where A is the number of unique artists, E is the number of edges
+     Space: O(A)
+shortest_path: Time: O(A + E)
+               Space: O(A)
+connected_components: Time: O(A + E)
+                      Space: O(A)
+top_K_by_degree: Time: O(A log A)
+                 Space: O(A)
+
+Analytics:
+min_value: Time: O(N)
+           Space: O(N)
+max_value: Time: O(N)
+           Space: O(N)
+average_value: Time: O(N)
+               Space: O(N)
+median_value: Time: O(N log N)
+              Space: O(N)
+top_k_by_count(numeric): Time: O(N log N)
+                         Space: O(N)
+
+6. Example Queries
+search("name", "John")
+range_search("year", 2000, 2020)
+insert({...})
+delete(record_id)
+update(record_id, {"genre": "Folk"})
+compound_search([("genre", "Rock"), ("year", 1990)], "AND")
+shortest_path(id1, id2)
+
+7. Summary
+The MiniDB system successfully implements a scalable in-memory database capable of efficiently managing 1,000,000 song records through a
+combination of data structures and modular design. Raw storage uses a look up for O(1) access, while AVL-tree indexes provide guaranteed
+O(log N) searches and range queries, enabling fast retrieval even across large datasets. A collaboration graph built using an adjacency-map structure
+supports meaningful artist-network analysis through BFS, shortest paths, and connected components in O(A + E) time. The analytics module enables
+statistical exploration of the dataset. Overall, the system achieves high performance, functional completeness, and strong scalability, demonstrating
+effective application of data-structure principles to database design.
